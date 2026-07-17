@@ -29,6 +29,7 @@ def build_parser():
     p.add_argument("--title", required=True)
     p.add_argument("--description", required=False, default="")
     p.add_argument("--contributor", action="append")
+    p.add_argument("--due", required=False, help="Due date e.g. '2026-08-01' or 'Aug 1'")
     p.set_defaults(func=commands.add_task)
 
     p = sub.add_parser("list-tasks", help="List all tasks")
