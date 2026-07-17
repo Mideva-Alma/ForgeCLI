@@ -1,7 +1,10 @@
 import sys
+from rich.console import Console
+from rich.table import Table
 from src.models import User, Project, Task
 from src.utils import load_db, save_db, find_by_name
-from src.models import Task 
+
+console = Console()
 
 
 def add_user(args):
@@ -18,10 +21,13 @@ def add_user(args):
 def list_users(args):
     db = load_db()
     if not db["users"]:
-        print("No users yet.")
+        console.print("[yellow]No users yet.[/yellow]")
         return
+    table = Table(title="Users")
+    table.add_column("ID"); table.add_column("Name"); table.add_column("Email")
     for u in db["users"]:
-        print(f"{u['id']}  {u['name']}  {u.get('email') or '-'}")
+        table.add_row(u["id"], u["name"], u.get("email") or "-")
+    console.print(table)
 
 
 def add_project(args):
@@ -42,24 +48,36 @@ def add_project(args):
 def list_projects(args):
     db = load_db()
     if not db["projects"]:
-        print("No projects yet.")
+        console.print("[yellow]No projects yet.[/yellow]")
         return
+    table = Table(title="Projects")
+    table.add_column("ID"); table.add_column("Title"); table.add_column("Status")
     for p in db["projects"]:
-        print(f"{p['id']}  {p['name']}  status={p['status']}")
-
+        table.add_row(p["id"], p["name"], p["status"])
+    console.print(table)
 
 def add_task(args):
+    from dateutil import parser as date_parser
+
     db = load_db()
     project = find_by_name(db["projects"], args.project)
     if project is None:
         print(f"Error: project '{args.project}' not found.")
         sys.exit(1)
-    task = Task(name=args.title, project_id=project["id"], description=args.description or "")
+
+    due = None
+    if args.due:
+        due = date_parser.parse(args.due).date().isoformat()
+
+    task = Task(name=args.title, project_id=project["id"],
+                description=args.description or "", due_date=due)
+
     if args.contributor:
         for name in args.contributor:
             user = find_by_name(db["users"], name)
             if user:
                 task.add_contributor(user["id"])
+
     db["tasks"].append(task.to_dict())
     project["task_ids"].append(task.id)
     save_db(db)
@@ -69,11 +87,13 @@ def add_task(args):
 def list_tasks(args):
     db = load_db()
     if not db["tasks"]:
-        print("No tasks yet.")
+        console.print("[yellow]No tasks yet.[/yellow]")
         return
+    table = Table(title="Tasks")
+    table.add_column("ID"); table.add_column("Title"); table.add_column("Done")
     for t in db["tasks"]:
-        mark = "✔" if t["completed"] else "✘"
-        print(f"{t['id']}  {t['name']}  [{mark}]")
+        table.add_row(t["id"], t["name"], "✔" if t["completed"] else "✘")
+    console.print(table)
 
 
 def complete_task(args):
