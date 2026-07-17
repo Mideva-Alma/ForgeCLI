@@ -24,4 +24,18 @@ def build_parser():
     p = sub.add_parser("list-projects", help="List all projects")
     p.set_defaults(func=commands.list_projects)
 
+    p = sub.add_parser("add-task", help="Add a task to a project")
+    p.add_argument("--project", required=True)
+    p.add_argument("--title", required=True)
+    p.add_argument("--description", required=False, default="")
+    p.add_argument("--contributor", action="append")
+    p.set_defaults(func=commands.add_task)
+
+    p = sub.add_parser("list-tasks", help="List all tasks")
+    p.set_defaults(func=commands.list_tasks)
+
+    p = sub.add_parser("complete-task", help="Mark a task as complete")
+    p.add_argument("--title", required=True)
+    p.set_defaults(func=commands.complete_task)
+
     return parser
