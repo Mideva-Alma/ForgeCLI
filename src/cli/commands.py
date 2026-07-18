@@ -47,14 +47,36 @@ def add_project(args):
 
 def list_projects(args):
     db = load_db()
-    if not db["projects"]:
-        console.print("[yellow]No projects yet.[/yellow]")
+    projects = db["projects"]
+    if getattr(args, "user", None):
+        owner = find_by_name(db["users"], args.user)
+        if owner is None:
+            print(f"Error: user '{args.user}' not found.")
+            sys.exit(1)
+        projects = [p for p in projects if p["owner_id"] == owner["id"]]
+    if not projects:
+        console.print("[yellow]No projects found.[/yellow]")
         return
     table = Table(title="Projects")
     table.add_column("ID"); table.add_column("Title"); table.add_column("Status")
-    for p in db["projects"]:
+    for p in projects:
         table.add_row(p["id"], p["name"], p["status"])
     console.print(table)
+
+
+def search_projects(args):
+    db = load_db()
+    query = args.query.strip().lower()
+    matches = [p for p in db["projects"] if query in p["name"].lower()]
+    if not matches:
+        console.print(f"[yellow]No projects matching '{args.query}'.[/yellow]")
+        return
+    table = Table(title=f"Search: '{args.query}'")
+    table.add_column("ID"); table.add_column("Title"); table.add_column("Status")
+    for p in matches:
+        table.add_row(p["id"], p["name"], p["status"])
+    console.print(table)
+
 
 def add_task(args):
     from dateutil import parser as date_parser

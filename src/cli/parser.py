@@ -21,8 +21,13 @@ def build_parser():
     p.add_argument("--status", required=False, choices=["planned", "active", "on-hold", "completed"])
     p.set_defaults(func=commands.add_project)
 
-    p = sub.add_parser("list-projects", help="List all projects")
+    p = sub.add_parser("list-projects", help="List projects, optionally filtered by user")
+    p.add_argument("--user", required=False)
     p.set_defaults(func=commands.list_projects)
+
+    p = sub.add_parser("search-projects", help="Search projects by title")
+    p.add_argument("--query", required=True)
+    p.set_defaults(func=commands.search_projects)
 
     p = sub.add_parser("add-task", help="Add a task to a project")
     p.add_argument("--project", required=True)
